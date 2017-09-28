@@ -3,7 +3,7 @@
 	(slot isSmoker)
 	(slot minBudget)
 	(slot maxBudget)
-	(multislot dresscode)
+	(slot dresscode)
 	(slot hasWifi)
 )
 
@@ -14,4 +14,15 @@
 
 (deftemplate MAIN::userinfo
 	(slot name)
+)
+
+(deftemplate MAIN::restaurantScore
+	(slot restaurant)
+	(slot score)
+)
+
+(deftemplate MAIN::attChecked
+	(slot restaurant)
+	(slot name)
+	(slot value)
 )
