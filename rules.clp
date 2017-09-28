@@ -138,9 +138,39 @@
 	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
 	?fa <- (attChecked (restaurant ?nama) (name dresscode) (value unchecked))
 	=>
-	(if (eq (str-length ?prefDc) (str-length ?resDc)) then
+	(if (eq 0 (str-compare ?prefDc ?resDc)) then
 		(modify ?fs (score(+ 1 ?score)))
 		(modify ?fa (value checked))
+	)
+)
+
+(defrule pickRestaurantMinBudget
+	(declare (salience 35))
+	(preference (name minBudget) (value ?prefMinB))
+	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi))
+	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
+	?fa <- (attChecked (restaurant ?nama) (name minBudget) (value unchecked))
+	=>
+	(if (>= ?prefMinB ?resMinB) then
+		(if (<= ?prefMinB ?resMaxB) then
+			(modify ?fs (score(+ 1 ?score)))
+			(modify ?fa (value checked))
+		)
+	)
+)
+
+(defrule pickRestaurantMinBudget
+	(declare (salience 35))
+	(preference (name minBudget) (value ?prefMinB))
+	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi))
+	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
+	?fa <- (attChecked (restaurant ?nama) (name minBudget) (value unchecked))
+	=>
+	(if (>= ?prefMinB ?resMinB) then
+		(if (<= ?prefMinB ?resMaxB) then
+			(modify ?fs (score(+ 1 ?score)))
+			(modify ?fa (value checked))
+		)
 	)
 )
 
