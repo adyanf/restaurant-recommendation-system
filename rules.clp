@@ -61,8 +61,6 @@
         	(default (printout t "OK. Lets consider you need wifi!" crlf)))
 )
 
-;(defrule pickRestaurant)
-
 (defrule thankUser
 	(declare (salience 5))
 	(userinfo(name ?nama))
