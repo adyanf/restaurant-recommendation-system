@@ -159,22 +159,21 @@
 	)
 )
 
-(defrule pickRestaurantMinBudget
-	(declare (salience 35))
-	(preference (name minBudget) (value ?prefMinB))
+(defrule pickRestaurantMaxBudget
+	(declare (salience 30))
+	(preference (name maxBudget) (value ?prefMaxB))
 	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi))
 	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
-	?fa <- (attChecked (restaurant ?nama) (name minBudget) (value unchecked))
+	?fa <- (attChecked (restaurant ?nama) (name maxBudget) (value unchecked))
 	=>
-	(if (>= ?prefMinB ?resMinB) then
-		(if (<= ?prefMinB ?resMaxB) then
+	(if (<= ?prefMaxB ?resMaxB) then
+		(if (>= ?prefMaxB ?resMaxB) then
 			(modify ?fs (score(+ 1 ?score)))
 			(modify ?fa (value checked))
 		)
 	)
 )
 
->>>>>>> 10752603d7477b56b2281b78d20f77e35f2cf6b7
 (defrule thankUser
 	(declare (salience 5))
 	(userinfo(name ?nama))

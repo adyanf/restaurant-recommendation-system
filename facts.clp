@@ -8,5 +8,4 @@
 	(restaurant (name "Restoran F") (isSmoker False) (minBudget 2500) (maxBudget 5000) (dresscode "informal") (hasWifi True))
 	(restaurant (name "Restoran G") (isSmoker True) (minBudget 1300) (maxBudget 3000) (dresscode "casual") (hasWifi True))
 	(restaurant (name "Restoran H") (isSmoker False) (minBudget 400) (maxBudget 1000) (dresscode "informal") (hasWifi False))
->>>>>>> 10752603d7477b56b2281b78d20f77e35f2cf6b7
 )
