@@ -8,10 +8,11 @@
 
 (defrule questionName
 	(declare (salience 95))
+	(not (asked name))
 	=>
 	(printout t "What is your name? ")
 	(bind ?response (read))
-	 
+	(assert ?response)
 )
 
 (defrule questionSmoke
@@ -19,7 +20,10 @@
 	=>
 	(printout t "Do you smoke? (yes,no) ")
 	(bind ?response (read))
-	
+	(switch ?response
+        	(case yes then (assert (preference (name smoke) (value True))))
+        	(case no then (assert (preference (name smoke) (value False))))
+        	(default (printout t "OK. Lets consider you don't smoke!" crlf)))
 )
 
 (defrule questionMinBudget
@@ -27,7 +31,7 @@
 	=>
 	(printout t "What is your minimum budget? [0-9999] ")
 	(bind ?response (read))
-	
+	(assert (preference (nama minbudget) (value ?response)))
 )
 
 (defrule questionMaxBudget
@@ -35,7 +39,7 @@
 	=>
 	(printout t "What is your maximum budget? [0-9999] ")
 	(bind ?response (read))
-	
+	(assert (preference (nama maxbudget) (value ?response)))
 )
 
 (defrule questionClothes
@@ -43,7 +47,7 @@
 	=>
 	(printout t "What clothes are you wearing? (casual,informal,formal) ")
 	(bind ?response (read))
-	
+	(assert (preference (nama clothes) (value ?response)))
 )
 
 (defrule questionWifi
@@ -51,8 +55,8 @@
 	=>
 	(printout t "Do you want a restaurant with Wi-Fi? (yes/no) ")
 	(bind ?response (read))
-	
+	(switch ?response
+        	(case yes then (assert (preference (name wifi) (value True))))
+        	(case no then (assert (preference (name wifi) (value False))))
+        	(default (printout t "OK. Lets consider you need wifi!" crlf)))
 )
-
-	
-	
