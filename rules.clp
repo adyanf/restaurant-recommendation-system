@@ -59,7 +59,7 @@
 	(not (asked name))
 	=>
 	(printout t "What is your name? ")
-	(bind ?response (read))	
+	(bind ?response (read))
 	(assert (userinfo (name ?response)))
 )
 
@@ -166,3 +166,25 @@
 	=>
 	(format t "Thank you, %-12s!%n" ?nama)
 )
+
+(defrule assert-unprinted
+  (print-sorted)
+  (restaurantScore (restaurant ?n))
+  =>
+  (assert (unprinted ?n)))
+
+(defrule retract-print-sorted
+  (declare (salience -10))
+  ?f <- (print-sorted)
+  =>
+  (retract ?f))
+
+(defrule print-solution
+  (not (print-sorted))
+  ?u <- (unprinted ?name)
+	(restaurantScore (restaurant ?name) (score ?score))
+  (forall (and (unprinted ?n) (restaurantScore (restaurant ?n) (score ?s)))
+          (test (= ?s 0)))
+  =>
+  (retract ?u)
+  (printout t ?name " : very recommended " ?score "." crlf))
