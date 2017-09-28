@@ -1,13 +1,17 @@
-(deftemplate restaurant
-	(slot nama)
+(deftemplate MAIN::restaurant
+	(slot name)
 	(slot isSmoker)
 	(slot minBudget)
 	(slot maxBudget)
-	(slot dresscode)
+	(multislot dresscode)
 	(slot hasWifi)
 )
 
-(deftemplate preference
-	(slot nama)
-	(slot nilai)
+(deftemplate MAIN::preference
+	(slot name)
+	(multislot value)
+)
+
+(deftemplate MAIN::userinfo
+	(slot name)
 )
