@@ -61,12 +61,11 @@
         	(default (printout t "OK. Lets consider you need wifi!" crlf)))
 )
 
-(defrule pickRestaurant)
+;(defrule pickRestaurant)
 
 (defrule thankUser
 	(declare (salience 5))
 	(userinfo(name ?nama))
-	;(preference (name clothes) (value ?val))
 	=>
-	(format t "Thank you, %-12s%n" ?nama "!")
+	(format t "Thank you, %-12s %n" ?nama)
 )
