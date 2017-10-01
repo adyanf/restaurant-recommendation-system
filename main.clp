@@ -3,7 +3,7 @@
 	(slot isSmoker)
 	(slot minBudget)
 	(slot maxBudget)
-	(slot dresscode)
+	(multislot dresscode)
 	(slot hasWifi)
 )
 

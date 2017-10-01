@@ -59,7 +59,7 @@
 	(not (asked name))
 	=>
 	(printout t "What is your name? ")
-	(bind ?response (read))
+	(bind ?response (readline))
 	(assert (userinfo (name ?response)))
 )
 
@@ -67,10 +67,10 @@
 	(declare (salience 90))
 	=>
 	(printout t "Do you smoke? (yes,no) ")
-	(bind ?response (read))
+	(bind ?response (readline))
 	(switch ?response
-        	(case yes then (assert (preference (name smoke) (value True))))
-        	(case no then (assert (preference (name smoke) (value False))))
+        	(case "yes" then (assert (preference (name smoke) (value TRUE))))
+        	(case "no" then (assert (preference (name smoke) (value FALSE))))
         	(default (printout t "OK. Lets consider you don't smoke!" crlf)))
 )
 
@@ -78,34 +78,42 @@
 	(declare (salience 85))
 	=>
 	(printout t "What is your minimum budget? [0-9999] ")
-	(bind ?response (read))
-	(assert (preference (name minBudget) (value ?response)))
+	(bind ?response (readline))
+	(switch ?response
+        (case "" then )
+        (default (assert (preference (name minBudget) (value (integer (string-to-field ?response)))))))
 )
 
 (defrule questionMaxBudget
 	(declare (salience 80))
 	=>
 	(printout t "What is your maximum budget? [0-9999] ")
-	(bind ?response (read))
-	(assert (preference (name maxBudget) (value ?response)))
+	(bind ?response (readline))
+	(switch ?response
+        (case "" then (printout t "OK. Lets consider you want the cheapest restaurant!" crlf))
+        (default (assert (preference (name maxBudget) (value (integer (string-to-field ?response)))))))
 )
 
 (defrule questionClothes
 	(declare (salience 75))
 	=>
 	(printout t "What clothes are you wearing? (casual,informal,formal) ")
-	(bind ?response (read))
-	(assert (preference (name dresscode) (value ?response)))
+	(bind ?response (readline))
+	(switch ?response
+        (case "informal" then (assert (preference (name dresscode) (value "informal"))))
+        (case "formal" then (assert (preference (name dresscode) (value "formal"))))
+        (case "casual" then (assert (preference (name dresscode) (value "casual"))))
+        (default (printout t "OK. Lets consider you like it casual!" crlf)))
 )
 
 (defrule questionWifi
 	(declare (salience 70))
 	=>
 	(printout t "Do you want a restaurant with Wi-Fi? (yes/no) ")
-	(bind ?response (read))
+	(bind ?response (readline))
 	(switch ?response
-        	(case yes then (assert (preference (name wifi) (value True))))
-        	(case no then (assert (preference (name wifi) (value False))))
+        	(case "yes" then (assert (preference (name wifi) (value TRUE))))
+        	(case "no" then (assert (preference (name wifi) (value FALSE))))
         	(default (printout t "OK. Lets consider you need wifi!" crlf)))
 )
 
