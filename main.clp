@@ -16,9 +16,24 @@
 	(slot name)
 )
 
+(deftemplate MAIN::printed
+	(slot count)
+)
+
+(deftemplate MAIN::restaurantDistance
+	(slot name)
+	(slot latitude)
+	(slot longitude)
+)
+
 (deftemplate MAIN::restaurantScore
 	(slot restaurant)
 	(slot score)
+)
+
+(deftemplate MAIN::restaurantCategory
+	(slot restaurant)
+	(slot category)
 )
 
 (deftemplate MAIN::attChecked

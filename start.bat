@@ -2,6 +2,6 @@
 (load main.CLP)
 (load facts.CLP)
 (load rules.CLP)
-(watch all)
+;(watch all)
 (reset)					
 (run)

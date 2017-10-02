@@ -12,6 +12,8 @@
 	(assert (restaurantScore (restaurant "Restoran F") (score 0)))
 	(assert (restaurantScore (restaurant "Restoran G") (score 0)))
 	(assert (restaurantScore (restaurant "Restoran H") (score 0)))
+	(assert (restaurantScore (restaurant "Restoran I") (score 0)))
+	(assert (restaurantScore (restaurant "Restoran J") (score 0)))
 	(assert (attChecked (restaurant "Restoran A") (name isSmoker) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran A") (name minBudget) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran A") (name maxBudget) (value unchecked)))
@@ -52,6 +54,16 @@
 	(assert (attChecked (restaurant "Restoran H") (name maxBudget) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran H") (name dresscode) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran H") (name hasWifi) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran I") (name isSmoker) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran I") (name minBudget) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran I") (name maxBudget) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran I") (name dresscode) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran I") (name hasWifi) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran J") (name isSmoker) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran J") (name minBudget) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran J") (name maxBudget) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran J") (name dresscode) (value unchecked)))
+	(assert (attChecked (restaurant "Restoran J") (name hasWifi) (value unchecked)))
 )
 
 (defrule questionName
@@ -120,23 +132,27 @@
 (defrule pickRestaurantSmoker
 	(declare (salience 50))
 	(preference (name smoke) (value ?prefSmoker))
-	(restaurant (name ?nama) (isSmoker ?resSmoker&~?prefSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi))
+	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode $?resDc) (hasWifi ?resWifi))
 	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
 	?fa <- (attChecked (restaurant ?nama) (name isSmoker) (value unchecked))
 	=>
-	(modify ?fs (score(+ 1 ?score)))
-	(modify ?fa (value checked))
+	(if (!= (str-compare ?prefSmoker ?resSmoker) 0)
+	then
+		(modify ?fs (score(+ 1 ?score))))
+	(retract ?fa)
 )
 
 (defrule pickRestaurantWifi
 	(declare (salience 45))
 	(preference (name wifi) (value ?prefWifi))
-	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi&~?prefWifi))
+	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode $?resDc) (hasWifi ?resWifi))
 	?fs <- (restaurantScore (restaurant ?nama) (score ?score))
 	?fa <- (attChecked (restaurant ?nama) (name hasWifi) (value unchecked))
 	=>
-	(modify ?fs (score(+ 1 ?score)))
-	(modify ?fa (value checked))
+	(if (!= (str-compare ?prefWifi ?resWifi) 0)
+	then
+		(modify ?fs (score(+ 1 ?score))))
+	(retract ?fa)
 )
 
 (defrule pickRestaurantDresscode
@@ -148,24 +164,40 @@
 	=>
 	(if (not(member$ ?prefDc $?resDc)) then
 		(modify ?fs (score(+ 1 ?score)))
-		(modify ?fa (value checked))
 	)
+	(retract ?fa)
 )
 
 (defrule pickRestaurantBudget
 	(declare (salience 35))
 	(preference (name minBudget) (value ?prefMinB))
 	(preference (name maxBudget) (value ?prefMaxB))
-	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode ?resDc) (hasWifi ?resWifi))
+	(restaurant (name ?nama) (isSmoker ?resSmoker) (minBudget ?resMinB) (maxBudget ?resMaxB) (dresscode $?resDc) (hasWifi ?resWifi))
 	?f1 <- (restaurantScore (restaurant ?nama) (score ?score))
 	?f2 <- (attChecked (restaurant ?nama) (name minBudget) (value unchecked))
 	?f3 <- (attChecked (restaurant ?nama) (name maxBudget) (value unchecked))
 	=>
 	(if (or (> ?prefMinB ?resMaxB) (< ?prefMaxB ?resMinB)) then
 		(modify ?f1 (score(+ 1 ?score)))
-		(modify ?f2 (value checked))
-		(modify ?f3 (value checked))
 	)
+	(retract ?f2)
+	(retract ?f3)
+)
+
+(defrule chooseRestaurantCategory
+	(declare (salience 30))
+	?f1 <- (restaurantScore (restaurant ?nama) (score ?score))
+	=>
+	(if (= ?score 0)
+      then
+      (assert (restaurantCategory (restaurant ?nama) (category "Very recommended")))
+      else
+	  (if (and (>= ?score 1) (<= ?score 2))
+      	then
+      	(assert (restaurantCategory (restaurant ?nama) (category "Recommended")))
+		else 
+		(assert (restaurantCategory (restaurant ?nama) (category "Not recommended")))))
+	(retract ?f1)
 )
 
 (defrule thankUser
@@ -173,11 +205,12 @@
 	(userinfo(name ?nama))
 	=>
 	(format t "Thank you, %-12s!%n" ?nama)
+	(assert (print-sorted))
 )
 
 (defrule assert-unprinted
   (print-sorted)
-  (restaurantScore (restaurant ?n))
+  (restaurantCategory (restaurant ?n))
   =>
   (assert (unprinted ?n)))
 
@@ -185,14 +218,48 @@
   (declare (salience -10))
   ?f <- (print-sorted)
   =>
-  (retract ?f))
+  (retract ?f)
+  (assert (print-solution))
+)
 
-(defrule print-solution
-  (not (print-sorted))
+(defrule print-very-recommended
+  (declare (salience 3))
+  (print-solution)
   ?u <- (unprinted ?name)
-	(restaurantScore (restaurant ?name) (score ?score))
-  (forall (and (unprinted ?n) (restaurantScore (restaurant ?n) (score ?s)))
-          (test (= ?s 0)))
+  (restaurantCategory (restaurant ?name) (category ?cat))
+  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
+  ;(test (= (str-compare ?category "Very recommended") 0)))
   =>
-  (retract ?u)
-  (printout t ?name " : very recommended " ?score "." crlf))
+  (if (= (str-compare ?cat "Very recommended") 0)
+	then
+	(retract ?u)
+	(printout t ?name " : Very recommended." crlf))
+)
+
+(defrule print-recommended
+  (declare (salience 2))
+  (print-solution)
+  ?u <- (unprinted ?name)
+  (restaurantCategory (restaurant ?name) (category ?cat))
+  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
+  ;(test (= (str-compare ?c "Recommended") 0)))
+  =>
+   (if (= (str-compare ?cat "Recommended") 0)
+	then
+	(retract ?u)
+	(printout t ?name " : Recommended." crlf))
+)
+
+(defrule print-not-recommended
+  (declare (salience 1))
+  (print-solution)
+  ?u <- (unprinted ?name)
+  (restaurantCategory (restaurant ?name) (category ?cat))
+  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
+  ;(test (= (str-compare ?c "Not recommended") 0)))
+  =>
+   (if (= (str-compare ?cat "Not recommended") 0)
+	then
+	(retract ?u)
+	(printout t ?name " : Not recommended." crlf))
+)
