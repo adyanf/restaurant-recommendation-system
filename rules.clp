@@ -14,6 +14,10 @@
 	(assert (restaurantScore (restaurant "Restoran H") (score 0)))
 	(assert (restaurantScore (restaurant "Restoran I") (score 0)))
 	(assert (restaurantScore (restaurant "Restoran J") (score 0)))
+	(assert (userLocation (latitude 0) (longitude 0)))
+	(assert (locUser (name latitude) (value unchecked)))
+	(assert (locUser (name longitude) (value unchecked)))
+	(assert (printed (count 0)))
 	(assert (attChecked (restaurant "Restoran A") (name isSmoker) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran A") (name minBudget) (value unchecked)))
 	(assert (attChecked (restaurant "Restoran A") (name maxBudget) (value unchecked)))
@@ -129,6 +133,32 @@
         	(default (printout t "OK. Lets consider you need wifi!" crlf)))
 )
 
+(defrule questionLatitude
+	(declare (salience 65))
+	?fl <- (userLocation (latitude ?lat) (longitude ?long))
+	?fa <- (locUser (name latitude) (value unchecked))
+	=>
+	(printout t "What are your latitude coordinate ? ")
+	(bind ?response (readline))
+	(switch ?response
+        (case "" then (printout t "OK. Lets consider your latitude coordinate are -6.57178179 !" crlf) (modify ?fl (latitude -6.57178179)))
+        (default (modify ?fl (latitude (float (string-to-field ?response))))))
+	(retract ?fa)
+)
+
+(defrule questionLongitude
+	(declare (salience 60))
+	?fl <- (userLocation (latitude ?lat) (longitude ?long))
+	?fa <- (locUser (name longitude) (value unchecked))
+	=>
+	(printout t "What are your longitude coordinate ? ")
+	(bind ?response (readline))
+	(switch ?response
+        (case "" then (printout t "OK. Lets consider your longitude coordinate are 107.21753038 !" crlf) (modify ?fl (longitude 107.21753038)))
+        (default (modify ?fl (longitude(float (string-to-field ?response))))))
+	(retract ?fa)
+)
+
 (defrule pickRestaurantSmoker
 	(declare (salience 50))
 	(preference (name smoke) (value ?prefSmoker))
@@ -184,19 +214,21 @@
 	(retract ?f3)
 )
 
-(defrule chooseRestaurantCategory
+(defrule chooseRestaurantResult
 	(declare (salience 30))
 	?f1 <- (restaurantScore (restaurant ?nama) (score ?score))
+	?fc <- (restaurantCoordinate (name ?nama) (latitude ?x1) (longitude ?y1))
+	?fu <- (userLocation (latitude ?x2) (longitude ?y2))
 	=>
 	(if (= ?score 0)
       then
-      (assert (restaurantCategory (restaurant ?nama) (category "Very recommended")))
+      (assert (restaurantResult (restaurant ?nama) (category "Very recommended") (distance (checkingDistance ?x1 ?y1 ?x2 ?y2 ))))
       else
 	  (if (and (>= ?score 1) (<= ?score 2))
       	then
-      	(assert (restaurantCategory (restaurant ?nama) (category "Recommended")))
+      	(assert (restaurantResult (restaurant ?nama) (category "Recommended") (distance (checkingDistance ?x1 ?y1 ?x2 ?y2 ))))
 		else 
-		(assert (restaurantCategory (restaurant ?nama) (category "Not recommended")))))
+		(assert (restaurantResult (restaurant ?nama) (category "Not recommended") (distance (checkingDistance ?x1 ?y1 ?x2 ?y2 ))))))
 	(retract ?f1)
 )
 
@@ -204,13 +236,14 @@
 	(declare (salience 5))
 	(userinfo(name ?nama))
 	=>
-	(format t "Thank you, %-12s!%n" ?nama)
+	(printout t crlf "Hello, " ?nama "!" crlf)
+	(printout t "Here's our recommendation: " crlf)
 	(assert (print-sorted))
 )
 
 (defrule assert-unprinted
   (print-sorted)
-  (restaurantCategory (restaurant ?n))
+  (restaurantResult (restaurant ?n))
   =>
   (assert (unprinted ?n)))
 
@@ -226,40 +259,46 @@
   (declare (salience 3))
   (print-solution)
   ?u <- (unprinted ?name)
-  (restaurantCategory (restaurant ?name) (category ?cat))
-  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
-  ;(test (= (str-compare ?category "Very recommended") 0)))
+  ?p <- (printed (count ?c))
+  (restaurantResult (restaurant ?name) (category ?cat) (distance ?dis))
+  (forall (and (unprinted ?n) (restaurantResult (restaurant ?n) (category ?cat) (distance ?d)))
+          (test (>= ?d ?dis)))
   =>
-  (if (= (str-compare ?cat "Very recommended") 0)
+  (if (and (= (str-compare ?cat "Very recommended") 0) (< ?c 3))
 	then
 	(retract ?u)
-	(printout t ?name " : Very recommended." crlf))
+	(modify ?p (count(+ ?c 1)))
+	(printout t (+ ?c 1) ". " ?name " : Very recommended (distance: " ?dis ")" crlf))
 )
 
 (defrule print-recommended
   (declare (salience 2))
   (print-solution)
   ?u <- (unprinted ?name)
-  (restaurantCategory (restaurant ?name) (category ?cat))
-  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
-  ;(test (= (str-compare ?c "Recommended") 0)))
+  ?p <- (printed (count ?c))
+  (restaurantResult (restaurant ?name) (category ?cat) (distance ?dis))
+  (forall (and (unprinted ?n) (restaurantResult (restaurant ?n) (category ?cat) (distance ?d)))
+          (test (>= ?d ?dis)))
   =>
-   (if (= (str-compare ?cat "Recommended") 0)
+   (if (and (= (str-compare ?cat "Recommended") 0) (< ?c 3))
 	then
 	(retract ?u)
-	(printout t ?name " : Recommended." crlf))
+	(modify ?p (count(+ ?c 1)))
+	(printout t (+ ?c 1)". " ?name " : Recommended (distance: " ?dis ")" crlf))
 )
 
 (defrule print-not-recommended
   (declare (salience 1))
   (print-solution)
   ?u <- (unprinted ?name)
-  (restaurantCategory (restaurant ?name) (category ?cat))
-  ;(forall (and (unprinted ?n) (restaurantCategory (restaurant ?n) (category ?c)))
-  ;(test (= (str-compare ?c "Not recommended") 0)))
+  ?p <- (printed (count ?c))
+  (restaurantResult (restaurant ?name) (category ?cat) (distance ?dis))
+  (forall (and (unprinted ?n) (restaurantResult (restaurant ?n) (category ?cat) (distance ?d)))
+          (test (>= ?d ?dis)))
   =>
-   (if (= (str-compare ?cat "Not recommended") 0)
+   (if (and (= (str-compare ?cat "Very recommended") 0) (< ?c 3))
 	then
 	(retract ?u)
-	(printout t ?name " : Not recommended." crlf))
+	(modify ?p (count(+ ?c 1)))
+	(printout t (+ ?c 1) ". " ?name " : Not recommended (distance: " ?dis ")" crlf))
 )

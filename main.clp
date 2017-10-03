@@ -20,10 +20,20 @@
 	(slot count)
 )
 
-(deftemplate MAIN::restaurantDistance
+(deftemplate MAIN::restaurantCoordinate
 	(slot name)
 	(slot latitude)
 	(slot longitude)
+)
+
+(deftemplate MAIN::userLocation
+	(slot latitude)
+	(slot longitude)
+)
+
+(deftemplate MAIN::locUser
+	(slot name)
+	(slot value)
 )
 
 (deftemplate MAIN::restaurantScore
@@ -31,9 +41,10 @@
 	(slot score)
 )
 
-(deftemplate MAIN::restaurantCategory
+(deftemplate MAIN::restaurantResult
 	(slot restaurant)
 	(slot category)
+	(slot distance)
 )
 
 (deftemplate MAIN::attChecked
